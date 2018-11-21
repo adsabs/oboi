@@ -1,14 +1,39 @@
 import os
 from datetime import datetime
 import time
-from adsputils import load_config, setup_logging
+from adsputils import load_config, setup_logging, date2solrstamp
 import gzip
-
+from influxdb import InfluxDBClient
 
 class InfluxDbConsumer():
+    def __init__(self, config):
+        host = config.get('HOST', 'localhost')
+        port = config.get('PORT', 8086)
+        user = config.get('USER', None)
+        passwd = config.get('PASSWD', None)
+        dbname = config.get('DATABASE', 'arxiv_logs')
+        self.client = InfluxDBClient(host, port, user, passwd, dbname)
+        self.client.create_database(dbname)
+        
     def consume(self, date, key, value):
-        ts = time.mktime(date.utctimetuple())
-        self._post(timestamp=ts, key=key)
+        json_body = [
+            {
+                "measurement": "read_log",
+                "tags": {
+                    "host": "arxiv",
+                    "paper": key
+                },
+                "time": date2solrstamp(date),
+                "fields": {
+                    "Int_value": 1,
+                    "String_value": value
+                }
+            }
+        ]
+        self.client.write_points(json_body)
+        
+        #ts = time.mktime(date.utctimetuple())
+        #self._post(timestamp=ts, key=key, value=)
         
     def _post(self, **kwargs):
         self.client.post(data=kwargs)
@@ -45,7 +70,7 @@ class ArxivLogApplication():
     def _get_consumer(self):
         c = self.config.get('CONSUMER', 'influxdb').lower()
         if 'influx' in c:
-            return InfluxDbConsumer()
+            return InfluxDbConsumer(self.config)
         else:
             raise Exception('Unknown conumer: %s' % c)
         

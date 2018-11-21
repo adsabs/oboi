@@ -21,4 +21,6 @@ InfluxDB:
 
  - https://github.com/BushnevYuri/DockerGrafanaInfluxKit
 
+    to start (simple):
+    docker run --name=influxdb -d -p 8086:8086 influxdb
 

@@ -3,6 +3,8 @@ Created on Nov 20, 2018
 
 @author: rchyla
 '''
+import sys
+print sys.path
 import unittest
 from arxiv_logs import app
 import os
