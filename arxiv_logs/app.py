@@ -18,7 +18,7 @@ class InfluxDbConsumer():
     def consume(self, date, key, value):
         json_body = [
             {
-                "measurement": "read_log",
+                "measurement": "reads",
                 "tags": {
                     "host": "arxiv",
                     "paper": key
@@ -64,7 +64,9 @@ class ArxivLogApplication():
                                     level=self.config.get('LOGGING_LEVEL', 'INFO'),
                                     attach_stdout=self.config.get('LOG_STDOUT', False))
         
-        self.consumer = self._get_consumer()
+    @property
+    def consumer(self):
+        return self._get_consumer()
         
     
     def _get_consumer(self):
@@ -103,6 +105,10 @@ class ArxivLogApplication():
                     continue
                 bibcode, reader = l.split()
                 consumer.consume(dayoflog, bibcode, reader)
+        except Exception, e:
+            self.logger.error("Error reading data from %s", bn)
+            self.logger.error(e)
         finally:
-            fin.close()
+            if fin:
+                fin.close()
                 

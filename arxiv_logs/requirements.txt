@@ -1,1 +1,2 @@
 git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.7
+influxdb

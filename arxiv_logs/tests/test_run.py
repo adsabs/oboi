@@ -8,11 +8,14 @@ print sys.path
 import unittest
 from arxiv_logs import app
 import os
+from mock import patch, MagicMock,call
+import datetime
 
 class Test(unittest.TestCase):
 
 
     def setUp(self):
+        
         self.app = app.ArxivLogApplication('test')
 
 
@@ -24,7 +27,11 @@ class Test(unittest.TestCase):
 
     def test_process(self):
         d = os.path.dirname(__file__)
-        self.app.process_folder(d)
+        consumer = MagicMock()
+        with patch.object(self.app, '_get_consumer', return_value=consumer):
+            self.app.process_folder(d)
+            assert consumer.consume.call_count == 120
+            assert consumer.consume.call_args == call(datetime.datetime(2018, 11, 3, 0, 0), '0704.0362', 'X56d9e101f')
 
 
 if __name__ == "__main__":
